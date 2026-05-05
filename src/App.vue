@@ -1,44 +1,71 @@
 <script setup lang="ts">
-import axios from "axios";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import type Post from "./models/Post";
+import http from "./http";
 
-const lista = ref([] as any[]);
+const posts = ref([] as Post[]);
 
-async function loadLista() {
-  const response = await axios.get(
-    "https://jsonplaceholder.typicode.com/posts",
-  );
-  lista.value = response.data;
+const post = ref({} as Post);
+
+onMounted(listarPost);
+
+async function listarPost() {
+  const response = await http.get("/posts");
+  posts.value = response.data;
+}
+
+async function cadastrarPost() {
+  const response = await http.post("/posts", post.value);
+  if (response.status < 300) {
+    post.value = {} as Post;
+    alert("Post cadastrado com sucesso");
+  }
 }
 </script>
 
 <template>
-  <div class="Conteiner">
+  <div class="container">
     <div class="row">
       <div class="col">
-        <button class="btn btn-primary" @click="loadLista">
-          Carregar Lista
-        </button>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Id de usuario</th>
-              <th>id titulo</th>
-              <th>titulo</th>
-              <th>post</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in lista" :key="item.id">
-              <td>{{ item.userId }}</td>
-              <td>{{ item.id }}</td>
-              <td>{{ item.title }}</td>
-              <td>{{ item.body }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <form @submit.prevent="cadastrarPost">
+          <div class="mb-3">
+            <label class="form-label">Id Usuário</label>
+            <input class="form-control" type="number" v-model="post.userId" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Id</label>
+            <input class="form-control" type="number" v-model="post.id" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input class="form-control" type="text" v-model="post.title" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <input class="form-control" type="text" v-model="post.body" />
+          </div>
+          <button class="btn btn-primary" type="submit">Salvar</button>
+        </form>
       </div>
     </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User id</th>
+          <th>Id</th>
+          <th>Título</th>
+          <th>Descrição</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="p in posts" :key="p.id">
+          <td>{{ p.userId }}</td>
+          <td>{{ p.id }}</td>
+          <td>{{ p.title }}</td>
+          <td>{{ p.body }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
